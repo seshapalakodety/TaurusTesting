@@ -1,0 +1,84 @@
+---
+services:
+- module: shellexec
+  prepare:  
+  - mkdir tmp_guy
+  - wget https://raw.githubusercontent.com/seshapalakodety/TaurusTesting/master/TestUsers.csv
+  #- sort -R hosts.csv > random_hosts.csv
+  startup:
+  - echo 1 > tmp_guy/bla.txt
+  - echo 2 >> tmp_guy/bla.txt
+  shutdown:
+  - echo "shutdown time is $(date)" >> tmp/bla.txt
+  post-process:
+  - echo "this is a post process" >> tmp/bla.txt
+  #- mail -a tmp_guy/bzt.log -s “my_taurus_log_file“ user@example.com < tmp/bla.txt
+  
+execution:
+- scenario: Login Demo
+  concurrency:
+    #local: 1
+    cloud: 10
+  hold-for: 150s
+  iterations: 1
+  ramp-up: 30s
+  locations:
+    harbor-5d356e7fb1d1fab426003645: 1
+    #us-east-1: 1
+scenarios:
+  Login Demo:
+    data-sources:
+    - delimiter: ','
+      loop: true
+      path: TestUsers.csv
+      quoted: false
+      variable-names: email,pwd
+    default-address: https://apollomon.beanlogin.com/
+    requests:
+    - do:
+      - body:
+          DeviceId: 11F90962-4F0F-4C5C-BE42-8C29D24D1BF4
+          DeviceModel: iPhone 7
+          DeviceToken: ''
+          Location: ''
+          Password: ${pwd}
+          UserName: ${email}
+          version: '1909'
+        extract-jsonpath:
+          Login_:
+            default: ''
+            jsonpath: Data.APIKey
+          Password_:
+            default: ''
+            jsonpath: Data.SessionToken
+        follow-redirects: true
+        headers:
+          Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3
+          Accept-Encoding: gzip, deflate, br
+          Accept-Language: en-US,en;q=0.9
+          Cache-Control: max-age=0
+          Content-Type: application/x-www-form-urlencoded
+          Origin: https://apollomon.beanlogin.com
+          Referer: https://apollomon.beanlogin.com
+          Upgrade-Insecure-Requests: '1'
+          User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36
+        label: POST authenticateUser
+        method: POST
+        url: https://apollomon.beanlogin.com/BeanLoginAPI/api/v1/BeanLogin/authenticateUser
+      loop: 1
+    store-cache: true
+    store-cookie: false
+    use-dns-cache-mgr: false
+
+provisioning: cloud
+
+modules:
+  cloud:
+    token: 'c7bbd424068e88794964cfc5:f29aa7814dd55a626574b358c1545421784a8edca519a4844d9cbecb12b59cb37aef123f'  # API id and API secret divided by :
+    timeout: 10s  # BlazeMeter API client timeout
+    browser-open: start  # auto-open browser on test start/end/both/none
+    check-interval: 5s  # interval which Taurus uses to query test status from BlazeMeter
+    public-report: false  # make test report public, disabled by default
+    send-report-email: false  # send report email once test is finished, disabled by default
+    request-logging-limit: 10240 # use this to dump more of request/response data into logs, for debugging
+
