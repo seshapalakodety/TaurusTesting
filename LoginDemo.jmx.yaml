@@ -23,8 +23,8 @@ execution:
   iterations: 1
   ramp-up: 30s
   locations:
-    harbor-5d356e7fb1d1fab426003645: 1
-    #us-east-1: 1
+    #harbor-5d356e7fb1d1fab426003645: 1
+    us-east-1: 1
 scenarios:
   Login Demo:
     data-sources:
